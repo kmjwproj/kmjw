@@ -4,7 +4,9 @@ import { QueryProvider } from './query-provider';
 
 
 export const Providers = ({children}: {children:React.ReactNode})=>{
-    <QueryProvider>
-        {children}
-    </QueryProvider>
+    return (
+        <QueryProvider>
+            {children}
+        </QueryProvider>
+    );
 }
