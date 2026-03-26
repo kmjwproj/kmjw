@@ -3,6 +3,10 @@ import localFont from 'next/font/local';
 import { Providers } from '@/src/app/provider';
 
 import './globals.css';
+import { Figtree } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const figtree = Figtree({subsets:['latin'],variable:'--font-sans'});
 
 const pretendard = localFont({
   src: '../public/fonts/PretendardVariable.woff2',
@@ -19,10 +23,14 @@ export default async function LocaleLayout({
 }) {
 
   return (
-    <html lang='ko'>
+    <html lang='ko' className={cn("font-sans", figtree.variable)}>
       <head />
-      <body className={`${pretendard.variable} antialiased`}>
-          <Providers>{children}</Providers>
+      <body className={`${pretendard.variable} antialiased`} >
+          <Providers>
+            <div className="max-w-3xl mx-auto">
+                {children}
+            </div>
+          </Providers>
       </body>
     </html>
   );
