@@ -20,8 +20,8 @@ export default function BottomTabBar() {
             className={cn(
               'flex items-center justify-center transition-all duration-200 active:scale-90',
               isActive
-                ? 'text-[var(--brand)] scale-125'
-                : 'text-zinc-400 hover:text-[var(--brand)]/70',
+                ? 'text-(--brand) scale-125'
+                : 'text-zinc-400 hover:text-(--brand)/70',
             )}
           >
             <Icon
