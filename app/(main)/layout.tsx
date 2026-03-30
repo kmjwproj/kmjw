@@ -9,7 +9,7 @@ export default function MainLayout({
   return (
     <>
       <TopHeader />
-      <main className="pt-14 pb-16">{children}</main>
+      <main className="h-screen overflow-y-auto pt-14 pb-16">{children}</main>
       <BottomTabBar />
     </>
   )
