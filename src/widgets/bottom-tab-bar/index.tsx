@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { cn } from '@/lib/utils'
+import { cn } from "@/src/shared/lib/cn";
 import { TABS } from '@/src/shared/navigation/tab-config'
 
 export default function BottomTabBar() {
