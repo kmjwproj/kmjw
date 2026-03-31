@@ -2,9 +2,9 @@ import localFont from 'next/font/local';
 
 import { Providers } from '@/src/app/provider';
 
-import './globals.css';
+import './styles/globals.css';
 import { Figtree } from "next/font/google";
-import { cn } from "@/lib/utils";
+import { cn } from "@/src/shared/lib/cn";
 
 const figtree = Figtree({subsets:['latin'],variable:'--font-sans'});
 
@@ -27,7 +27,7 @@ export default async function LocaleLayout({
       <head />
       <body className={`${pretendard.variable} antialiased`} >
           <Providers>
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-120 mx-auto">
                 {children}
             </div>
           </Providers>
