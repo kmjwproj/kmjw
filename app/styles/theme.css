@@ -2,6 +2,7 @@
   --color-bg: #ffffff;
   --color-text-primary: #171717;
   --font-sans: var(--font-pretendard);
+  --brand: #ab2c5d;
 }
 
 @media (prefers-color-scheme: dark) {
