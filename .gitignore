@@ -52,3 +52,9 @@ plans
 .bmad-core
 .roo*
 web-bundles/
+
+docs/
+
+.mcp*
+
+.serena*

@@ -37,20 +37,34 @@ export async function updateSession(request: NextRequest) {
 
   // IMPORTANT: If you remove getClaims() and you use server-side rendering
   // with the Supabase client, your users may be randomly logged out.
-  const { data } = await supabase.auth.getClaims()
+  const { data: { session } } = await supabase.auth.getSession()
 
-  const user = data?.claims
+  // const onboarded = session?.user.user_metadata?.onboarded as boolean | undefined
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/signin') &&
-    !request.nextUrl.pathname.startsWith('/auth')
-  ) {
-    // no user, potentially respond by redirecting the user to the signin page
-    const url = request.nextUrl.clone()
-    url.pathname = '/signin'
-    return NextResponse.redirect(url)
-  }
+  // if (!session) {
+  //   // 세션 없음 → signin으로 리다이렉트
+  //   const url = request.nextUrl.clone()
+  //   url.pathname = '/signin'
+  //   return NextResponse.redirect(url)
+  // }
+
+  // if (!onboarded) {
+  //   if (!request.nextUrl.pathname.startsWith('/onboard') && 
+  //       !request.nextUrl.pathname.startsWith('/signin') &&
+  //       !request.nextUrl.pathname.startsWith('/auth')) {
+  //     // onboarded false → onboard로 리다이렉트
+  //     const url = request.nextUrl.clone()
+  //     url.pathname = '/onboard'
+  //     return NextResponse.redirect(url)
+  //   }
+  // } else {
+  //   if (request.nextUrl.pathname === '/onboard') {
+  //     // onboarded true → feed로 리다이렉트
+  //     const url = request.nextUrl.clone()
+  //     url.pathname = '/feed'
+  //     return NextResponse.redirect(url)
+  //   }
+  // }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
   // creating a new response object with NextResponse.next() make sure to:
