@@ -1,5 +1,5 @@
-import MyScreen from '@/src/screens/my'
+import { MyScreen } from '@/src/screens/my';
 
 export default function MyPage() {
-  return <MyScreen />
+  return <MyScreen />;
 }
