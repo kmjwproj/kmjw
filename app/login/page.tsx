@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/src/shared/lib/cn';
-import { useAuthStore } from '@/src/shared/lib/supabase';
+import { useAuthStore } from '@/src/shared/store/auth-store';
 import type { Provider } from '@supabase/supabase-js';
 
 export default function LoginPage() {

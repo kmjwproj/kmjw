@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 
 import { createClient } from '@/lib/supabase/client';
-import { useAuthStore } from '@/src/shared/lib/supabase/useAuthStore';
+import { useAuthStore } from '@/src/shared/store/auth-store';
 import type { AuthChangeEvent } from '@supabase/supabase-js';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
