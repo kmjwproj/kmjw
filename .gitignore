@@ -48,3 +48,17 @@ plans
 
 .omc
 .claude
+
+.bmad-core
+.roo*
+web-bundles/
+
+docs/
+
+.mcp*
+
+.serena*
+
+.vscode*
+
+search-exclude*
