@@ -1,5 +1,3 @@
-import type { StaticImageData } from 'next/image'
-
 export type Sender = 'me' | 'other'
 
 export type Message = {
@@ -12,9 +10,9 @@ export type Message = {
 export type ChatRoom = {
   id: string
   participantName: string
-  participantAvatar: StaticImageData
-  lastMessage: string
-  lastMessageAt: string
+  participantAvatar: string | null
+  lastMessage: string | null
+  lastMessageAt: string | null
   isRead: boolean
   lastSentByMe: boolean
 }
