@@ -9,7 +9,7 @@ export default function BottomTabBar() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed max-w-120 w-full bottom-0 h-16 z-50 flex justify-between items-center px-6 bg-background/95 backdrop-blur-xl border-t border-border/50">
+    <nav className="fixed max-w-120 w-full bottom-0 left-0 right-0 mx-auto h-16 z-50 flex justify-between items-center px-6 bg-background/95 backdrop-blur-xl border-t border-border/50">
       {TABS.map(({ href, icon: Icon, label }) => {
         const isActive = pathname === href
         return (
