@@ -133,6 +133,9 @@ export function useChatRoom(chatRoomId: string) {
 
       // T4: 내가 메세지를 보낼 때 = 읽고 있다는 뜻 → 읽음 처리
       markAsRead()
+
+      // 채팅방 리스트 순서 갱신
+      queryClient.invalidateQueries({ queryKey: ['chat-rooms'] })
     },
   });
 
