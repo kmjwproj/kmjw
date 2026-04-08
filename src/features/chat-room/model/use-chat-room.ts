@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/src/shared/store/auth-store';
@@ -25,6 +25,8 @@ export function useChatRoom(chatRoomId: string) {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const bottomRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const channelRef = useRef<any>(null);
 
   // 채팅방 정보 + 상대방 읽음 시간
   const { data: roomData } = useQuery({
@@ -38,7 +40,7 @@ export function useChatRoom(chatRoomId: string) {
         otherLastReadAt: string | null;
       }>;
     },
-    staleTime: 60_000,
+    staleTime: 0,
   });
 
   // 메시지 목록
@@ -52,12 +54,34 @@ export function useChatRoom(chatRoomId: string) {
     staleTime: 0,
   });
 
+  const markAsRead = useCallback(() => {
+    fetch(`/api/chat-rooms/${chatRoomId}/read`, { method: 'PATCH' })
+      .then(() => {
+        channelRef.current?.send({
+          type: 'broadcast',
+          event: 'read_updated',
+          payload: {},
+        })
+      })
+      .catch(() => {})
+  }, [chatRoomId])
+
   // 입장 시 읽음 처리
   useEffect(() => {
-    fetch(`/api/chat-rooms/${chatRoomId}/read`, { method: 'PATCH' }).catch(
-      () => {},
-    );
-  }, [chatRoomId]);
+    markAsRead();
+  }, [chatRoomId, markAsRead]);
+
+  // 탭 전환 시 읽음 처리 (다른 탭에서 돌아올 때)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        markAsRead();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () =>
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [chatRoomId, markAsRead]);
 
   // 메시지 전송 (낙관적 업데이트)
   const { mutate: sendMessage, isPending: sending } = useMutation({
@@ -106,6 +130,9 @@ export function useChatRoom(chatRoomId: string) {
           return [...withoutOptimistic, newMessage];
         },
       );
+
+      // T4: 내가 메세지를 보낼 때 = 읽고 있다는 뜻 → 읽음 처리
+      markAsRead()
     },
   });
 
@@ -114,6 +141,8 @@ export function useChatRoom(chatRoomId: string) {
     const supabase = createClient();
     const channel = supabase
       .channel(`messages:${chatRoomId}`)
+    channelRef.current = channel
+    channel
       .on(
         'postgres_changes',
         {
@@ -134,14 +163,23 @@ export function useChatRoom(chatRoomId: string) {
               return [...old, newMsg];
             },
           );
+          // 상대방이 메시지를 보냈다는 건 채팅방에 있다는 뜻 → otherLastReadAt 갱신
+          queryClient.invalidateQueries({ queryKey: ['chat-room', chatRoomId] });
+          if (document.visibilityState === 'visible') {
+            markAsRead();
+          }
         },
       )
+      .on('broadcast', { event: 'read_updated' }, () => {
+        // 상대방이 읽음 처리했다는 broadcast → otherLastReadAt 갱신
+        queryClient.invalidateQueries({ queryKey: ['chat-room', chatRoomId] })
+      })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [chatRoomId, queryClient, user?.id]);
+  }, [chatRoomId, queryClient, user?.id, markAsRead]);
 
   // 새 메시지 시 하단 스크롤
   useEffect(() => {
