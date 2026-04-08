@@ -1,16 +1,16 @@
-import TopHeader from '@/src/widgets/top-header'
-import BottomTabBar from '@/src/widgets/bottom-tab-bar'
+import BottomTabBar from '@/src/widgets/bottom-tab-bar';
+import { HeaderNav } from '@/src/widgets/header-nav';
 
 export default function MainLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <>
-      <TopHeader />
-      <main className="pt-14 pb-16">{children}</main>
+      <HeaderNav />
+      <main className="px-3 pt-16 pb-16">{children}</main>
       <BottomTabBar />
     </>
-  )
+  );
 }
