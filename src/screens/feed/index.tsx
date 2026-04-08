@@ -1,9 +1,9 @@
 'use client';
-import { useState } from 'react';
 
 import Image from 'next/image';
 
 import { HeaderNav } from '@/src/widgets/header-nav';
+import { parseAsStringLiteral, useQueryState } from 'nuqs';
 
 // 1. 데이터 배열 (나중에 이 부분에 API 데이터를 연결하면 됩니다)
 const FEED_DATA = [
@@ -49,13 +49,18 @@ const FEED_DATA = [
   },
 ];
 
+const FEED_TABS = ['オススメ', '足あと', '相手から'] as const;
+
 export const FeedScreen = () => {
-  const feedTabs = ['オススメ', '足あと', '相手から'];
-  const [activeTab, setActiveTab] = useState('オススメ');
+  const [activeTab, setActiveTab] = useQueryState(
+    'tab',
+    parseAsStringLiteral(FEED_TABS).withDefault(FEED_TABS[0]),
+  );
+
   return (
     <>
       <HeaderNav
-        tabs={feedTabs}
+        tabs={[...FEED_TABS]}
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
@@ -67,7 +72,17 @@ export const FeedScreen = () => {
     </>
   );
 };
-const FeedBox = ({ feed }) => {
+
+interface FeedItem {
+  id: number;
+  name: string;
+  age: number;
+  bio: string;
+  location: string;
+  image: string;
+}
+
+const FeedBox = ({ feed }: { feed: FeedItem }) => {
   return (
     <div className="relative aspect-[4/5] w-full max-w-md overflow-hidden rounded-xl shadow-md">
       {/* 1. 배경 이미지 */}

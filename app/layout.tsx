@@ -3,6 +3,7 @@ import localFont from 'next/font/local';
 
 import { Providers } from '@/src/app/provider';
 import { cn } from '@/src/shared/lib/cn';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
 import './styles/globals.css';
 
@@ -27,11 +28,13 @@ export default async function LocaleLayout({
         className={`${pretendard.variable} antialiased`}
         suppressHydrationWarning
       >
-        <Providers>
-          <div className="bg-card mx-auto min-h-screen max-w-120 shadow-xl">
-            {children}
-          </div>
-        </Providers>
+        <NuqsAdapter>
+          <Providers>
+            <div className="bg-card mx-auto min-h-screen max-w-120 shadow-xl">
+              {children}
+            </div>
+          </Providers>
+        </NuqsAdapter>
       </body>
     </html>
   );

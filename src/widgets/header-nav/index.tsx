@@ -3,13 +3,17 @@
 // TODO : 언어별 자간 설정
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-interface HeaderNavProps {
-  tabs: string[];
-  activeTab: string;
-  onTabChange: (tab: string) => void;
+interface HeaderNavProps<T extends string> {
+  tabs: readonly T[];
+  activeTab: T;
+  onTabChange: (tab: T) => void | Promise<URLSearchParams>;
 }
 
-export const HeaderNav = ({ tabs, activeTab, onTabChange }: HeaderNavProps) => {
+export const HeaderNav = <Tab extends string>({
+  tabs,
+  activeTab,
+  onTabChange,
+}: HeaderNavProps<Tab>) => {
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
