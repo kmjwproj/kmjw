@@ -1,49 +1,121 @@
-'use client'
+'use client';
 
-import { useRouter } from 'next/navigation'
-import { getImageUrl } from '@/src/entities/user/api/profile'
+import { useEffect, useRef, useState } from 'react';
+
+import { useRouter } from 'next/navigation';
+
+import { Bell, BellOff, ChevronLeft, LogOut } from 'lucide-react';
 
 type Props = {
-  nickname: string
-  profileImage: string | null
-}
+  nickname: string;
+  profileImage: string | null;
+  notificationEnabled: boolean;
+  onToggleNotification: () => void;
+  onLeave: () => void;
+};
 
-export function ChatRoomHeader({ nickname, profileImage }: Props) {
-  const router = useRouter()
-  const avatarUrl = getImageUrl(profileImage)
+type NotificationToastProps = {
+  visible: boolean;
+  enabled: boolean;
+};
+
+function NotificationToast({ visible, enabled }: NotificationToastProps) {
+  if (!visible) return null;
 
   return (
-    <header className="shrink-0 h-16 flex items-center justify-between px-4 bg-background/70 backdrop-blur-xl border-b border-border/50 z-10">
-      {/* 왼쪽: 뒤로가기 + 상대방 정보 */}
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="p-2 rounded-full hover:bg-muted transition-colors active:scale-95"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5M12 5l-7 7 7 7"/>
-          </svg>
-        </button>
-
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-full bg-muted overflow-hidden shrink-0 flex items-center justify-center">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={nickname} className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-sm text-muted-foreground">{nickname.charAt(0)}</span>
-            )}
-          </div>
-          <span className="font-semibold text-sm tracking-tight">{nickname}</span>
+    <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center">
+      <div className="rounded-2xl bg-black/80 px-5 py-4 text-white shadow-lg">
+        <div className="flex items-center gap-2">
+          {enabled ? (
+            <Bell className="h-4 w-4" />
+          ) : (
+            <BellOff className="h-4 w-4" />
+          )}
+          <span className="text-sm font-medium">
+            {enabled ? '채팅 알림을 켰어요' : '채팅 알림을 껐어요'}
+          </span>
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* 오른쪽: 더보기 */}
-      <button type="button" className="p-2 rounded-full hover:bg-muted transition-colors text-muted-foreground">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
-        </svg>
-      </button>
-    </header>
-  )
+export function ChatRoomHeader({
+  nickname,
+  profileImage,
+  notificationEnabled,
+  onToggleNotification,
+  onLeave,
+}: Props) {
+  const router = useRouter();
+
+  const [visible, setVisible] = useState(false);
+  const isFirstRender = useRef(true);
+  const prevNotificationEnabled = useRef(notificationEnabled);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      prevNotificationEnabled.current = notificationEnabled;
+      return;
+    }
+
+    if (prevNotificationEnabled.current !== notificationEnabled) {
+      setVisible(true);
+      prevNotificationEnabled.current = notificationEnabled;
+    }
+  }, [notificationEnabled]);
+
+  useEffect(() => {
+    if (!visible) return;
+
+    const timer = setTimeout(() => setVisible(false), 1500);
+    return () => clearTimeout(timer);
+  }, [visible]);
+
+  return (
+    <>
+      <header className="bg-background/70 border-border/50 z-10 flex h-16 shrink-0 items-center justify-between border-b px-4 backdrop-blur-xl">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="hover:bg-muted rounded-full p-2 transition-colors active:scale-95"
+          >
+            <ChevronLeft size={22} />
+          </button>
+        </div>
+
+        <div className="flex h-full items-center justify-center gap-2.5 p-2">
+          <span className="text-md font-semibold tracking-tight">
+            {nickname}
+          </span>
+        </div>
+
+        <div className="flex gap-0.5">
+          <button
+            type="button"
+            onClick={onToggleNotification}
+            className="hover:bg-muted rounded-full p-2 transition-colors"
+          >
+            {notificationEnabled ? (
+              <Bell size={20} className="text-foreground" />
+            ) : (
+              <BellOff size={20} className="text-muted-foreground" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={onLeave}
+            className="hover:bg-muted text-muted-foreground hover:text-destructive rounded-full p-2 transition-colors"
+          >
+            <LogOut size={20} />
+          </button>
+        </div>
+      </header>
+
+      <NotificationToast visible={visible} enabled={notificationEnabled} />
+    </>
+  );
 }
