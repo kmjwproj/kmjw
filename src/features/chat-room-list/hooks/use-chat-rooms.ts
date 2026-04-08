@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/src/shared/store/auth-store'
 import { getImageUrl } from '@/src/entities/user/api/profile'
@@ -40,20 +41,18 @@ function toChatRoom(item: any): ChatRoom {
 
 export function useChatRooms() {
   const { user } = useAuthStore()
-  const [rooms, setRooms] = useState<ChatRoom[]>([])
+  const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
 
-  async function fetchRooms() {
-    const res = await fetch('/api/chat-rooms')
-    if (!res.ok) return
-    const data = await res.json()
-    setRooms(data.map(toChatRoom))
-  }
-
-  useEffect(() => {
-    fetchRooms()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  const { data: rooms = [] } = useQuery({
+    queryKey: ['chat-rooms'],
+    queryFn: async () => {
+      const res = await fetch('/api/chat-rooms')
+      if (!res.ok) throw new Error('Failed to fetch chat rooms')
+      const data = await res.json()
+      return data.map(toChatRoom) as ChatRoom[]
+    },
+  })
 
   // Realtime: 내 chat_room_participants에 새 행이 INSERT될 때 (다른 유저가 나와 채팅방을 만들었을 때)
   // 또는 새 메시지가 왔을 때 목록 갱신
@@ -70,7 +69,7 @@ export function useChatRooms() {
           table: 'chat_room_participants',
           filter: `user_id=eq.${user.id}`,
         },
-        () => { fetchRooms() },
+        () => { queryClient.invalidateQueries({ queryKey: ['chat-rooms'] }) },
       )
       .on(
         'postgres_changes',
@@ -79,13 +78,12 @@ export function useChatRooms() {
           schema: 'public',
           table: 'messages',
         },
-        () => { fetchRooms() },
+        () => { queryClient.invalidateQueries({ queryKey: ['chat-rooms'] }) },
       )
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id])
+  }, [user?.id, queryClient])
 
   const filteredRooms = useMemo(() => {
     if (!searchQuery.trim()) return rooms
