@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -79,23 +79,10 @@ export default function ChatRoomScreen({ chatRoomId }: Props) {
   const router = useRouter();
   const [notificationEnabled, setNotificationEnabled] = useState(true);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
-  const [showMatchCard, setShowMatchCard] = useState(false);
 
   const isRequester = user?.id === requesterId;
   const isPending = status === 'pending';
   const isActive = status === 'active';
-
-  // status가 pending → active 로 바뀔 때 매칭 카드 표시 (최초 1회)
-  useEffect(() => {
-    if (isActive) {
-      const matchKey = `matched_${chatRoomId}`;
-      if (!localStorage.getItem(matchKey)) {
-        localStorage.setItem(matchKey, '1');
-        setShowMatchCard(true);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isActive, chatRoomId]);
 
   // 거절당했을 때 2.5초 후 자동 뒤로가기
   useEffect(() => {
@@ -103,10 +90,6 @@ export default function ChatRoomScreen({ chatRoomId }: Props) {
     const timer = setTimeout(() => router.back(), 2500);
     return () => clearTimeout(timer);
   }, [declined, router]);
-
-  const handleDismissMatchCard = useCallback(() => {
-    setShowMatchCard(false);
-  }, []);
 
   return (
     <div className="bg-background fixed inset-0 z-50 flex flex-col items-center">
@@ -158,18 +141,18 @@ export default function ChatRoomScreen({ chatRoomId }: Props) {
           />
         )}
 
-        {showMatchCard && myProfile && participant && (
+        {isActive && myProfile && participant && (
           <MatchCard
             myProfile={myProfile}
             otherProfile={participant}
             mode="matched"
-            onDismiss={handleDismissMatchCard}
+            onDismiss={() => {}}
           />
         )}
 
         {/* 메시지 목록 */}
         <div
-          className="flex flex-1 flex-col gap-1 overflow-y-auto px-4 py-4"
+          className="flex flex-1 flex-col gap-1 overflow-y-auto px-4 py-1"
           style={{ scrollbarWidth: 'none' }}
         >
           {loading && (
@@ -179,7 +162,7 @@ export default function ChatRoomScreen({ chatRoomId }: Props) {
           )}
 
           {!loading && isActive && messages.length === 0 && (
-            <p className="text-muted-foreground py-10 text-center text-sm">
+            <p className="text-muted-foreground text-center text-sm">
               아직 메시지가 없습니다. 첫 메시지를 보내보세요!
             </p>
           )}

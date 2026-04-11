@@ -39,39 +39,14 @@ export function MatchCard({
     if (firedRef.current) return;
     firedRef.current = true;
 
-    const duration = 2500;
-    const end = Date.now() + duration;
-
-    const frame = () => {
-      confetti({
-        particleCount: 5,
-        angle: 60,
-        spread: 50,
-        origin: { x: 0.15, y: 0.2 },
-        colors: ['#ff6b9d', '#ffd93d', '#6bcb77', '#4d96ff'],
-      });
-
-      confetti({
-        particleCount: 5,
-        angle: 120,
-        spread: 50,
-        origin: { x: 0.85, y: 0.2 },
-        colors: ['#ff6b9d', '#ffd93d', '#6bcb77', '#4d96ff'],
-      });
-
-      if (Date.now() < end) {
-        requestAnimationFrame(frame);
-      }
-    };
-
-    frame();
+    confetti({
+      particleCount: 120,
+      spread: 100,
+      startVelocity: 40,
+      origin: { x: 0.5, y: 0.35 },
+      colors: ['#ff6b9d', '#ffd93d', '#6bcb77', '#4d96ff', '#c084fc'],
+    });
   }, [mode]);
-
-  useEffect(() => {
-    if (mode !== 'matched') return;
-    const timer = setTimeout(onDismiss, 3000);
-    return () => clearTimeout(timer);
-  }, [mode, onDismiss]);
 
   return (
     <div className="shrink-0 px-4 pt-3">
@@ -173,7 +148,7 @@ function MatchedContent({
   otherProfile: Profile;
 }) {
   return (
-    <div className="flex flex-col items-center text-center">
+    <div className="border-border/60 flex flex-col items-center border-b pb-8 text-center">
       <div className="relative flex items-center justify-center">
         <div className="translate-x-2">
           <ProfileAvatar profile={myProfile} />
