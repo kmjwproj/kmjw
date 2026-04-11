@@ -11,7 +11,7 @@ type Props = {
   profileImage: string | null;
   notificationEnabled: boolean;
   onToggleNotification: () => void;
-  onLeave: () => void;
+  onLeave?: () => void;
 };
 
 type NotificationToastProps = {
@@ -104,13 +104,15 @@ export function ChatRoomHeader({
             )}
           </button>
 
-          <button
-            type="button"
-            onClick={onLeave}
-            className="hover:bg-muted text-muted-foreground hover:text-destructive rounded-full p-2 transition-colors"
-          >
-            <LogOut size={20} />
-          </button>
+          {onLeave && (
+            <button
+              type="button"
+              onClick={onLeave}
+              className="hover:bg-muted text-muted-foreground hover:text-destructive rounded-full p-2 transition-colors"
+            >
+              <LogOut size={20} />
+            </button>
+          )}
         </div>
       </header>
 

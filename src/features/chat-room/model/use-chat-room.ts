@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/src/shared/store/auth-store';
@@ -14,12 +14,17 @@ export type Message = {
   created_at: string;
 };
 
-export type Participant = {
+export type Profile = {
   user_id: string;
   nickname: string;
   profile_image: string | null;
+};
+
+export type Participant = Profile & {
   otherLastReadAt: string | null;
 };
+
+export type RoomStatus = 'pending' | 'active';
 
 export function useChatRoom(chatRoomId: string) {
   const { user } = useAuthStore();
@@ -27,6 +32,7 @@ export function useChatRoom(chatRoomId: string) {
   const bottomRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const channelRef = useRef<any>(null);
+  const [declined, setDeclined] = useState(false);
 
   // 채팅방 정보 + 상대방 읽음 시간
   const { data: roomData } = useQuery({
@@ -36,7 +42,10 @@ export function useChatRoom(chatRoomId: string) {
       if (!res.ok) throw new Error('Failed to fetch room');
       return res.json() as Promise<{
         id: string;
-        participant: Participant;
+        status: RoomStatus;
+        requesterId: string | null;
+        participant: Profile;
+        myProfile: Profile | null;
         otherLastReadAt: string | null;
         myLeftAt: string | null;
         otherLeftAt: string | null;
@@ -133,10 +142,7 @@ export function useChatRoom(chatRoomId: string) {
         },
       );
 
-      // T4: 내가 메세지를 보낼 때 = 읽고 있다는 뜻 → 읽음 처리
       markAsRead()
-
-      // 채팅방 리스트 순서 갱신
       queryClient.invalidateQueries({ queryKey: ['chat-rooms'] })
     },
   });
@@ -154,7 +160,34 @@ export function useChatRoom(chatRoomId: string) {
     },
   })
 
-  // Realtime 구독 (상대방 메시지 수신)
+  // acceptRequest mutation
+  const { mutate: acceptRequest, isPending: accepting } = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/chat-rooms/${chatRoomId}/accept`, { method: 'POST' })
+      if (!res.ok) throw new Error('Failed to accept request')
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chat-room', chatRoomId] })
+      queryClient.invalidateQueries({ queryKey: ['chat-rooms'] })
+    },
+  })
+
+  // declineRequest mutation
+  const { mutate: declineRequest, isPending: declining } = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/chat-rooms/${chatRoomId}/decline`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed to decline request')
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: ['chat-room', chatRoomId] })
+      queryClient.removeQueries({ queryKey: ['messages', chatRoomId] })
+      queryClient.invalidateQueries({ queryKey: ['chat-rooms'] })
+    },
+  })
+
+  // Realtime 구독
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
@@ -172,7 +205,6 @@ export function useChatRoom(chatRoomId: string) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (payload: any) => {
           const newMsg = payload.new as Message;
-          // 내 메시지는 낙관적 업데이트로 이미 처리됨, 상대방 메시지만 추가
           if (newMsg.sender_id === user?.id) return;
           queryClient.setQueryData<Message[]>(
             ['messages', chatRoomId],
@@ -181,7 +213,6 @@ export function useChatRoom(chatRoomId: string) {
               return [...old, newMsg];
             },
           );
-          // 상대방이 메시지를 보냈다는 건 채팅방에 있다는 뜻 → otherLastReadAt 갱신
           queryClient.invalidateQueries({ queryKey: ['chat-room', chatRoomId] });
           if (document.visibilityState === 'visible') {
             markAsRead();
@@ -189,7 +220,6 @@ export function useChatRoom(chatRoomId: string) {
         },
       )
       .on('broadcast', { event: 'read_updated' }, () => {
-        // 상대방이 읽음 처리했다는 broadcast → otherLastReadAt 갱신
         queryClient.invalidateQueries({ queryKey: ['chat-room', chatRoomId] })
       })
       .on('postgres_changes', {
@@ -198,8 +228,25 @@ export function useChatRoom(chatRoomId: string) {
         table: 'chat_room_participants',
         filter: `chat_room_id=eq.${chatRoomId}`,
       }, () => {
-        // 나가기 등 참여자 상태 변경 감지
         queryClient.invalidateQueries({ queryKey: ['chat-room', chatRoomId] })
+      })
+      // 수락 감지: chat_rooms status → active
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'chat_rooms',
+        filter: `id=eq.${chatRoomId}`,
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: ['chat-room', chatRoomId] })
+      })
+      // 거절 감지: chat_rooms 삭제
+      .on('postgres_changes', {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'chat_rooms',
+        filter: `id=eq.${chatRoomId}`,
+      }, () => {
+        setDeclined(true)
       })
       .subscribe();
 
@@ -223,6 +270,9 @@ export function useChatRoom(chatRoomId: string) {
   return {
     messages,
     participant,
+    myProfile: roomData?.myProfile ?? null,
+    status: roomData?.status ?? 'pending',
+    requesterId: roomData?.requesterId ?? null,
     loading: isLoading,
     sending,
     sendMessage,
@@ -232,5 +282,10 @@ export function useChatRoom(chatRoomId: string) {
     leaving,
     myLeftAt: roomData?.myLeftAt ?? null,
     otherLeftAt: roomData?.otherLeftAt ?? null,
+    acceptRequest,
+    accepting,
+    declineRequest,
+    declining,
+    declined,
   };
 }
