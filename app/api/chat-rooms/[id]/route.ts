@@ -26,7 +26,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   const targetUserId = participants[0].user_id;
 
-  const [{ data: profile, error: profileError }, { data: otherParticipant }] = await Promise.all([
+  const [
+    { data: profile, error: profileError },
+    { data: otherParticipant },
+    { data: myParticipant },
+  ] = await Promise.all([
     supabase
       .from('profiles')
       .select('user_id, nickname, profile_image')
@@ -34,13 +38,25 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       .single(),
     supabase
       .from('chat_room_participants')
-      .select('last_read_at')
+      .select('last_read_at, left_at')
       .eq('chat_room_id', id)
       .neq('user_id', user.id)
+      .single(),
+    supabase
+      .from('chat_room_participants')
+      .select('left_at')
+      .eq('chat_room_id', id)
+      .eq('user_id', user.id)
       .single(),
   ]);
 
   if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 });
 
-  return NextResponse.json({ id, participant: profile, otherLastReadAt: otherParticipant?.last_read_at ?? null });
+  return NextResponse.json({
+    id,
+    participant: profile,
+    otherLastReadAt: otherParticipant?.last_read_at ?? null,
+    myLeftAt: myParticipant?.left_at ?? null,
+    otherLeftAt: otherParticipant?.left_at ?? null,
+  });
 }
