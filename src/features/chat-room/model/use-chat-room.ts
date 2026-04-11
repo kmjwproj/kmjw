@@ -187,7 +187,7 @@ export function useChatRoom(chatRoomId: string) {
     },
   })
 
-  // Realtime 구독
+  // Realtime 구독 — 메시지 + 참여자 (기존)
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
@@ -230,7 +230,23 @@ export function useChatRoom(chatRoomId: string) {
       }, () => {
         queryClient.invalidateQueries({ queryKey: ['chat-room', chatRoomId] })
       })
-      // 수락 감지: chat_rooms status → active
+      .subscribe((status) => {
+        // 재연결 시 놓친 메시지 refetch
+        if (status === 'SUBSCRIBED') {
+          queryClient.invalidateQueries({ queryKey: ['messages', chatRoomId] })
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [chatRoomId, queryClient, user?.id, markAsRead]);
+
+  // Realtime 구독 — 채팅방 상태 변경 (수락/거절, 별도 채널)
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`room-status:${chatRoomId}`)
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
@@ -239,7 +255,6 @@ export function useChatRoom(chatRoomId: string) {
       }, () => {
         queryClient.invalidateQueries({ queryKey: ['chat-room', chatRoomId] })
       })
-      // 거절 감지: chat_rooms 삭제
       .on('postgres_changes', {
         event: 'DELETE',
         schema: 'public',
@@ -253,7 +268,7 @@ export function useChatRoom(chatRoomId: string) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [chatRoomId, queryClient, user?.id, markAsRead]);
+  }, [chatRoomId, queryClient]);
 
   // 새 메시지 시 하단 스크롤
   useEffect(() => {
