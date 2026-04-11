@@ -118,43 +118,42 @@ export default function ChatRoomScreen({ chatRoomId }: Props) {
           <div className="border-border/50 bg-background h-16 shrink-0 border-b" />
         )}
 
-        {/* 상단 MatchCard 영역 */}
-        {isPending && !isRequester && myProfile && participant && (
-          <MatchCard
-            myProfile={myProfile}
-            otherProfile={participant}
-            mode="request-received"
-            onDismiss={() => {}}
-            onAccept={() => acceptRequest()}
-            onReject={() => declineRequest()}
-            accepting={accepting}
-            declining={declining}
-          />
-        )}
-
-        {isPending && isRequester && myProfile && participant && (
-          <MatchCard
-            myProfile={myProfile}
-            otherProfile={participant}
-            mode="request-sent"
-            onDismiss={() => {}}
-          />
-        )}
-
-        {isActive && myProfile && participant && (
-          <MatchCard
-            myProfile={myProfile}
-            otherProfile={participant}
-            mode="matched"
-            onDismiss={() => {}}
-          />
-        )}
-
         {/* 메시지 목록 */}
         <div
           className="flex flex-1 flex-col gap-1 overflow-y-auto px-4 py-1"
           style={{ scrollbarWidth: 'none' }}
         >
+          {/* 상단 MatchCard 영역 */}
+          {isPending && !isRequester && myProfile && participant && (
+            <MatchCard
+              myProfile={myProfile}
+              otherProfile={participant}
+              mode="request-received"
+              onDismiss={() => {}}
+              onAccept={() => acceptRequest()}
+              onReject={() => declineRequest()}
+              accepting={accepting}
+              declining={declining}
+            />
+          )}
+
+          {isPending && isRequester && myProfile && participant && (
+            <MatchCard
+              myProfile={myProfile}
+              otherProfile={participant}
+              mode="request-sent"
+              onDismiss={() => {}}
+            />
+          )}
+
+          {isActive && myProfile && participant && (
+            <MatchCard
+              myProfile={myProfile}
+              otherProfile={participant}
+              mode="matched"
+              onDismiss={() => {}}
+            />
+          )}
           {loading && (
             <p className="text-muted-foreground py-10 text-center text-sm">
               불러오는 중...
