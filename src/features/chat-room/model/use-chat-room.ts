@@ -38,6 +38,8 @@ export function useChatRoom(chatRoomId: string) {
         id: string;
         participant: Participant;
         otherLastReadAt: string | null;
+        myLeftAt: string | null;
+        otherLeftAt: string | null;
       }>;
     },
     staleTime: 0,
@@ -139,6 +141,19 @@ export function useChatRoom(chatRoomId: string) {
     },
   });
 
+  // leaveRoom mutation
+  const { mutate: leaveRoom, isPending: leaving } = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/chat-rooms/${chatRoomId}/leave`, { method: 'PATCH' })
+      if (!res.ok) throw new Error('Failed to leave room')
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chat-room', chatRoomId] })
+      queryClient.invalidateQueries({ queryKey: ['chat-rooms'] })
+    },
+  })
+
   // Realtime 구독 (상대방 메시지 수신)
   useEffect(() => {
     const supabase = createClient();
@@ -177,6 +192,15 @@ export function useChatRoom(chatRoomId: string) {
         // 상대방이 읽음 처리했다는 broadcast → otherLastReadAt 갱신
         queryClient.invalidateQueries({ queryKey: ['chat-room', chatRoomId] })
       })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'chat_room_participants',
+        filter: `chat_room_id=eq.${chatRoomId}`,
+      }, () => {
+        // 나가기 등 참여자 상태 변경 감지
+        queryClient.invalidateQueries({ queryKey: ['chat-room', chatRoomId] })
+      })
       .subscribe();
 
     return () => {
@@ -204,5 +228,9 @@ export function useChatRoom(chatRoomId: string) {
     sendMessage,
     bottomRef,
     otherLastReadAt: roomData?.otherLastReadAt ?? null,
+    leaveRoom,
+    leaving,
+    myLeftAt: roomData?.myLeftAt ?? null,
+    otherLeftAt: roomData?.otherLeftAt ?? null,
   };
 }

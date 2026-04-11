@@ -42,7 +42,6 @@ function NotificationToast({ visible, enabled }: NotificationToastProps) {
 
 export function ChatRoomHeader({
   nickname,
-  profileImage,
   notificationEnabled,
   onToggleNotification,
   onLeave,
