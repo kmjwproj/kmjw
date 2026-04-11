@@ -158,7 +158,7 @@ export async function POST(request: Request) {
   // 새 채팅방 생성
   const { data: newRoom, error: roomError } = await supabase
     .from('chat_rooms')
-    .insert({})
+    .insert({ status: 'pending', requester_id: user.id })
     .select('id')
     .single();
 
