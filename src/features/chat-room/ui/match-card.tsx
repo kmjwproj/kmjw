@@ -50,7 +50,7 @@ export function MatchCard({
 
   return (
     <div className="shrink-0 px-4 pt-3">
-      <div className="bg-background mx-auto w-full max-w-[360px] rounded-[28px] px-6 py-7">
+      <div className="bg-background mx-auto w-full rounded-[28px] px-6 py-7">
         {mode === 'request-received' && (
           <RequestReceivedContent
             otherProfile={otherProfile}
