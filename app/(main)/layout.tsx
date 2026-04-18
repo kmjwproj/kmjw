@@ -1,4 +1,4 @@
-import BottomTabBar from '@/src/widgets/bottom-tab-bar';
+import { BottomTabBar } from '@/src/widgets/bottom-tab-bar';
 
 export default function MainLayout({
   children,
@@ -8,7 +8,7 @@ export default function MainLayout({
   return (
     <>
       <div className="relative mx-auto min-h-screen max-w-120 bg-white">
-        <main className="px-3 pt-16 pb-16">{children}</main>
+        <main className="px-4 pt-16 pb-24">{children}</main>
         <BottomTabBar />
       </div>
     </>

@@ -4,14 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { useMutation } from '@tanstack/react-query'
 
-import type { OnboardFunnel, StepHistory } from './types'
-
-type CurrentContext = OnboardFunnel['Photo']
-
-interface Props {
-  context: CurrentContext
-  history: StepHistory<CurrentContext>
-}
+import type { StepProps } from './types'
 
 const uploadAvatar = async (file: File): Promise<string> => {
   const formData = new FormData()
@@ -25,7 +18,7 @@ const uploadAvatar = async (file: File): Promise<string> => {
   return path
 }
 
-export default function PhotoStep({ context, history }: Props) {
+export default function PhotoStep({ context: _context, history }: StepProps<'Photo'>) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
 
@@ -76,7 +69,12 @@ export default function PhotoStep({ context, history }: Props) {
       <button
         className="w-full bg-primary text-primary-foreground p-3 rounded-lg mb-2 disabled:opacity-50"
         disabled={avatarMutation.isPending}
-        onClick={() => history.push('BasicInfo', (prev) => ({ ...prev, profile_image: avatarMutation.data ?? '' }))}
+        onClick={() =>
+          history.push('BasicInfo', (prev: StepProps<'Photo'>['context']) => ({
+            ...prev,
+            profile_image: avatarMutation.data ?? '',
+          }))
+        }
       >
         다음
       </button>

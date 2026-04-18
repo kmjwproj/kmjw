@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  webpack: (config, { dev, isServer }) => {
+  webpack: (config, { dev, isServer: _isServer }) => {
     if (dev) {
       config.watchOptions = {
         ignored: ['**/node_modules/**', '**/.git/**', '**/.next/**'],

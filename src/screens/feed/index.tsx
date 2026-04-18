@@ -49,7 +49,8 @@ const FEED_DATA = [
   },
 ];
 
-const FEED_TABS = ['オススメ', '足あと', '相手から'] as const;
+const FEED_TABS = ['추천', '인기'] as const;
+// const FEED_TABS = ['추천', '인기', '실시간'] as const;
 
 export const FeedScreen = () => {
   const [activeTab, setActiveTab] = useQueryState(

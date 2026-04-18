@@ -1,16 +1,9 @@
 'use client'
 
 import { useRef } from 'react'
-import type { OnboardFunnel, StepHistory } from './types'
+import type { StepProps } from './types'
 
-type CurrentContext = OnboardFunnel['Nickname']
-
-interface Props {
-  context: CurrentContext
-  history: StepHistory<CurrentContext>
-}
-
-export default function NicknameStep({ context, history }: Props) {
+export default function NicknameStep({ context: _context, history }: StepProps<'Nickname'>) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   return (

@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/src/shared/lib/cn';
 import { TABS } from '@/src/shared/navigation/tab-config';
 
-export default function BottomTabBar() {
+export const BottomTabBar = () => {
   const pathname = usePathname();
 
   return (
@@ -19,11 +19,8 @@ export default function BottomTabBar() {
             href={href}
             aria-label={label}
             className={cn(
-              'flex items-center justify-center transition-all duration-200 active:scale-90',
-              // brand 대신 black으로 변경
-              isActive
-                ? 'scale-125 text-black'
-                : 'text-zinc-400 hover:text-black/70',
+              'flex flex-col items-center justify-center transition-all duration-200 active:scale-90',
+              isActive ? 'text-black' : 'text-zinc-400 hover:text-black/70',
             )}
           >
             <Icon
@@ -31,9 +28,17 @@ export default function BottomTabBar() {
               strokeWidth={isActive ? 2.5 : 1.75}
               fill={isActive ? 'currentColor' : 'none'}
             />
+            <p
+              className={cn(
+                'pt-1 text-xs',
+                isActive ? 'text-black' : 'text-zinc-400',
+              )}
+            >
+              {label}
+            </p>
           </Link>
         );
       })}
     </nav>
   );
-}
+};

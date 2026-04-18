@@ -1,16 +1,9 @@
 'use client'
 
 import { useRef } from 'react'
-import type { OnboardFunnel, StepHistory } from './types'
+import type { StepProps } from './types'
 
-type CurrentContext = OnboardFunnel['BasicInfo']
-
-interface Props {
-  context: CurrentContext
-  history: StepHistory<CurrentContext>
-}
-
-export default function BasicInfoStep({ context, history }: Props) {
+export default function BasicInfoStep({ context: _context, history }: StepProps<'BasicInfo'>) {
   const genderRef = useRef<HTMLSelectElement>(null)
   const ageRangeRef = useRef<HTMLSelectElement>(null)
 
@@ -29,10 +22,11 @@ export default function BasicInfoStep({ context, history }: Props) {
       </select>
       <button
         className="w-full bg-primary text-primary-foreground p-3 rounded-lg mb-2"
-        onClick={() => history.push('Interests', (prev) => ({
+        onClick={() => history.push('Interests', (prev: StepProps<'BasicInfo'>['context']) => ({
           ...prev,
           gender: genderRef.current?.value ?? '',
           age_range: ageRangeRef.current?.value ?? '',
+          interests: [],
         }))}
       >
         다음

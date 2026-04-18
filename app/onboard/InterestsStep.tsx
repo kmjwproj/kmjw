@@ -1,16 +1,9 @@
 'use client'
 
 import { useRef } from 'react'
-import type { OnboardFunnel, StepHistory } from './types'
+import type { StepProps } from './types'
 
-type CurrentContext = OnboardFunnel['Interests']
-
-interface Props {
-  context: CurrentContext
-  history: StepHistory<CurrentContext>
-}
-
-export default function InterestsStep({ context, history }: Props) {
+export default function InterestsStep({ context: _context, history }: StepProps<'Interests'>) {
   const sportsRef = useRef<HTMLInputElement>(null)
   const travelRef = useRef<HTMLInputElement>(null)
 
@@ -33,7 +26,11 @@ export default function InterestsStep({ context, history }: Props) {
           const interests: string[] = []
           if (sportsRef.current?.checked) interests.push('스포츠')
           if (travelRef.current?.checked) interests.push('여행')
-          history.push('Complete', (prev) => ({ ...prev, interests, onboarded: true }))
+          history.push('Complete', (prev: StepProps<'Interests'>['context']) => ({
+            ...prev,
+            interests,
+            onboarded: true,
+          }))
         }}
       >
         완료
