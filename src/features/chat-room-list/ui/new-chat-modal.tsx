@@ -1,9 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { getImageUrl } from '@/src/entities/user/api/profile'
+import { useStartChat } from '../hooks/use-start-chat'
 
 type UserItem = {
   id: string
@@ -22,36 +21,13 @@ async function fetchUsers(): Promise<UserItem[]> {
   return res.json()
 }
 
-async function createChatRoom(targetUserId: string): Promise<string> {
-  const res = await fetch('/api/chat-rooms', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ targetUserId }),
-  })
-  if (!res.ok) throw new Error('채팅방을 만들지 못했습니다')
-  const { id } = await res.json()
-  return id
-}
-
 export function NewChatModal({ onClose }: Props) {
-  const router = useRouter()
-  const [loadingId, setLoadingId] = useState<string | null>(null)
+  const { startChat, isLoading } = useStartChat()
 
-  const { data: users, isLoading, isError } = useQuery({
+  const { data: users, isLoading: isFetching, isError } = useQuery({
     queryKey: ['users'],
     queryFn: fetchUsers,
   })
-
-  async function handleStartChat(targetUserId: string) {
-    setLoadingId(targetUserId)
-    try {
-      const roomId = await createChatRoom(targetUserId)
-      onClose()
-      router.push(`/messages/${roomId}`)
-    } finally {
-      setLoadingId(null)
-    }
-  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
@@ -74,7 +50,7 @@ export function NewChatModal({ onClose }: Props) {
 
         {/* 유저 목록 */}
         <div className="flex-1 overflow-y-auto">
-          {isLoading && (
+          {isFetching && (
             <p className="text-center text-sm text-muted-foreground py-10">불러오는 중...</p>
           )}
           {isError && (
@@ -85,7 +61,7 @@ export function NewChatModal({ onClose }: Props) {
           )}
           {users?.map((u) => {
             const avatarUrl = getImageUrl(u.profile_image)
-            const isLoading = loadingId === u.user_id
+            const loading = isLoading(u.user_id)
 
             return (
               <div key={u.id} className="flex items-center gap-3 px-4 py-3">
@@ -106,11 +82,11 @@ export function NewChatModal({ onClose }: Props) {
                 {/* 채팅걸기 버튼 */}
                 <button
                   type="button"
-                  disabled={isLoading}
-                  onClick={() => handleStartChat(u.user_id)}
+                  disabled={loading}
+                  onClick={() => startChat(u.user_id, onClose)}
                   className="text-xs px-3 py-1.5 rounded-full bg-[var(--brand)] text-white disabled:opacity-50"
                 >
-                  {isLoading ? '이동 중...' : '채팅걸기'}
+                  {loading ? '이동 중...' : '채팅걸기'}
                 </button>
               </div>
             )
