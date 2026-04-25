@@ -5,9 +5,3 @@
   --brand: #ab2c5d;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #0a0a0a;
-    --color-text-primary: #ededed;
-  }
-}
