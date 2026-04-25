@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { nickname, profile_image, gender, age_range, interests } = body;
+  const { nickname, profile_image, gender, age_range, interests, mbti } = body;
 
   const { error: updateError } = await supabase.auth.updateUser({
     data: {
@@ -22,6 +22,7 @@ export async function POST(request: Request) {
       gender,
       age_range,
       interests,
+      mbti: mbti || null,
       onboarded: true,
     },
   });
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
       gender,
       age_range,
       interests,
+      mbti: mbti || null,
       onboarded: true,
     },
     { onConflict: 'user_id' },

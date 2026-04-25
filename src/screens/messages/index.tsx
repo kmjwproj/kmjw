@@ -16,11 +16,6 @@ export default function MessagesScreen() {
     parseAsStringLiteral(MESSAGE_TABS).withDefault(MESSAGE_TABS[0]),
   );
 
-  const filteredMessages =
-    activeTab === '전체 메시지'
-      ? MESSAGE_LIST
-      : MESSAGE_LIST.filter((message) => message.type === activeTab);
-
   return (
     <>
       <HeaderNav
@@ -30,7 +25,11 @@ export default function MessagesScreen() {
       />
 
       <div className="flex flex-col items-center justify-center pt-20">
-        <p className="text-zinc-400">{activeTab}가 없습니다.</p>
+        <p className="text-zinc-400">
+          {MESSAGE_LIST.length === 0
+            ? `${activeTab}가 없습니다.`
+            : '메시지가 있습니다.'}
+        </p>
       </div>
     </>
   );
