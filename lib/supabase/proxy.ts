@@ -49,6 +49,8 @@ export async function updateSession(request: NextRequest) {
 
   const isPublicPath =
     pathname.startsWith('/login') ||
+    pathname.startsWith('/terms') ||
+    pathname.startsWith('/privacy') ||
     pathname.startsWith('/onboard') ||
     pathname.startsWith('/auth') ||
     pathname.startsWith('/api/');
@@ -60,17 +62,21 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
   } else if (!onboarded) {
-    if (!pathname.startsWith('/onboard') && !pathname.startsWith('/auth') && !pathname.startsWith('/api/')) {
+    if (
+      !pathname.startsWith('/onboard') &&
+      !pathname.startsWith('/auth') &&
+      !pathname.startsWith('/api/')
+    ) {
       const url = request.nextUrl.clone();
       url.pathname = '/onboard';
       return NextResponse.redirect(url);
     }
   } else {
-    if (pathname === '/onboard') {
-      const url = request.nextUrl.clone();
-      url.pathname = '/feed';
-      return NextResponse.redirect(url);
-    }
+    // if (pathname === '/onboard') {
+    //   const url = request.nextUrl.clone();
+    //   url.pathname = '/feed';
+    //   return NextResponse.redirect(url);
+    // }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're

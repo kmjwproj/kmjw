@@ -1,38 +1,77 @@
-'use client'
+'use client';
 
-import { useRef } from 'react'
-import type { OnboardFunnel, StepHistory } from './types'
+import { useState } from 'react';
 
-type CurrentContext = OnboardFunnel['Nickname']
+import { createClient } from '@/lib/supabase/client';
 
-interface Props {
-  context: CurrentContext
-  history: StepHistory<CurrentContext>
-}
+import type { StepProps } from './types';
 
-export default function NicknameStep({ context, history }: Props) {
-  const inputRef = useRef<HTMLInputElement>(null)
+const supabase = createClient();
+
+export default function NicknameStep({
+  context,
+  history,
+}: StepProps<'Nickname'>) {
+  const [nickname, setNickname] = useState(context.nickname ?? '');
+  const [error, setError] = useState<string | null>(null);
+  const [isChecking, setIsChecking] = useState(false);
+
+  const handleNext = async () => {
+    if (!nickname.trim()) {
+      setError('닉네임을 입력해주세요.');
+      return;
+    }
+
+    setIsChecking(true);
+    setError(null);
+
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('profiles')
+        .select('nickname')
+        .eq('nickname', nickname.trim())
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      if (data) {
+        setError('이미 사용 중인 닉네임입니다.');
+        return;
+      }
+
+      history.push('Photo', () => ({ nickname: nickname.trim() }));
+    } catch (err) {
+      console.error(err);
+      setError('닉네임 확인 중 오류가 발생했습니다.');
+    } finally {
+      setIsChecking(false);
+    }
+  };
 
   return (
     <div>
-      <h2 className="text-2xl font-semibold mb-4">닉네임을 입력해주세요</h2>
+      <h2 className="mb-4 text-2xl font-semibold">닉네임을 입력해주세요</h2>
       <input
-        ref={inputRef}
         type="text"
         placeholder="닉네임"
-        className="w-full p-3 border rounded-lg mb-4"
+        className="mb-2 w-full rounded-lg border p-3"
+        value={nickname}
+        onChange={(e) => {
+          setNickname(e.target.value);
+          setError(null);
+        }}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            history.push('Photo', () => ({ nickname: e.currentTarget.value }))
-          }
+          if (e.key === 'Enter') handleNext();
         }}
       />
+      {error && <p className="text-destructive mb-4 text-sm">{error}</p>}
       <button
-        className="w-full bg-primary text-primary-foreground p-3 rounded-lg"
-        onClick={() => history.push('Photo', () => ({ nickname: inputRef.current?.value ?? '' }))}
+        className="bg-primary text-primary-foreground w-full rounded-lg p-3 disabled:opacity-50"
+        onClick={handleNext}
+        disabled={isChecking}
       >
-        다음
+        {isChecking ? '확인 중...' : '다음'}
       </button>
     </div>
-  )
+  );
 }

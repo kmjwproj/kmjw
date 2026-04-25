@@ -1,16 +1,22 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+
 import { useRouter } from 'next/navigation';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import {
   AGE_RANGES,
   GENDERS,
@@ -21,6 +27,7 @@ import {
   updateProfile,
   uploadAvatar,
 } from '@/src/entities/user/api/profile';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const ProfileEditScreen = () => {
   const {
@@ -59,15 +66,19 @@ const ProfileEditForm = ({ profile }: { profile: Profile }) => {
   const [ageRange, setAgeRange] = useState(profile.age_range || '');
   const [bio, setBio] = useState(profile.bio || '');
   const [interests, setInterests] = useState<string[]>(profile.interests || []);
-  const [profileImagePath, setProfileImagePath] = useState<string | null>(profile.profile_image || null);
-  const [preview, setPreview] = useState<string | null>(getImageUrl(profile.profile_image));
+  const [profileImagePath, setProfileImagePath] = useState<string | null>(
+    profile.profile_image || null,
+  );
+  const [preview, setPreview] = useState<string | null>(
+    getImageUrl(profile.profile_image),
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     return () => {
       if (preview?.startsWith('blob:')) URL.revokeObjectURL(preview);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const avatarMutation = useMutation({
@@ -125,14 +136,19 @@ const ProfileEditForm = ({ profile }: { profile: Profile }) => {
         </div>
 
         <div className="mb-6 flex flex-col items-center">
-          <Label className="mb-3 w-full text-left text-lg font-semibold">프로필 사진</Label>
-          <div 
+          <Label className="mb-3 w-full text-left text-lg font-semibold">
+            프로필 사진
+          </Label>
+          <div
             className="relative cursor-pointer"
             onClick={() => fileInputRef.current?.click()}
           >
-            <Avatar className="h-24 w-24 border-2 border-muted">
-              <AvatarImage src={preview || undefined} className="object-cover" />
-              <AvatarFallback className="text-3xl bg-muted">📷</AvatarFallback>
+            <Avatar className="border-muted h-24 w-24 border-2">
+              <AvatarImage
+                src={preview || undefined}
+                className="object-cover"
+              />
+              <AvatarFallback className="bg-muted text-3xl">📷</AvatarFallback>
             </Avatar>
           </div>
           <input
@@ -202,13 +218,19 @@ const ProfileEditForm = ({ profile }: { profile: Profile }) => {
           <Label className="mb-2 block text-lg font-semibold">관심사</Label>
           <div className="grid grid-cols-2 gap-2">
             {INTERESTS.map((interest) => (
-              <div key={interest} className="flex items-center space-x-2 rounded border p-2">
+              <div
+                key={interest}
+                className="flex items-center space-x-2 rounded border p-2"
+              >
                 <Checkbox
                   id={`interest-${interest}`}
                   checked={interests.includes(interest)}
                   onCheckedChange={() => toggleInterest(interest)}
                 />
-                <Label htmlFor={`interest-${interest}`} className="cursor-pointer font-normal hover:bg-transparent">
+                <Label
+                  htmlFor={`interest-${interest}`}
+                  className="cursor-pointer font-normal hover:bg-transparent"
+                >
                   {interest}
                 </Label>
               </div>
@@ -223,7 +245,7 @@ const ProfileEditForm = ({ profile }: { profile: Profile }) => {
         )}
 
         <Button
-          className="mb-2 w-full h-12 rounded-md"
+          className="mb-2 h-12 w-full rounded-md"
           onClick={handleSave}
           disabled={
             updateMutation.isPending ||
@@ -235,7 +257,7 @@ const ProfileEditForm = ({ profile }: { profile: Profile }) => {
         </Button>
         <Button
           variant="outline"
-          className="w-full h-12 rounded-md"
+          className="h-12 w-full rounded-md"
           onClick={handleCancel}
         >
           취소
